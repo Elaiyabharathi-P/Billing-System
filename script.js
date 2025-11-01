@@ -821,7 +821,7 @@ function processPayment() {
         } else if (activeTab === 'upi-generate') {
             // For QR generation, payment is initiated by customer scanning
             // We can proceed as payment is confirmed when customer scans
-            upiId = 'hotel@upi'; // Merchant UPI ID
+            upiId = '9659490501@apl'; // Merchant UPI ID
         }
     } else if (selectedPaymentMethod === 'wallet') {
         const mobile = document.getElementById('wallet-mobile').value;
@@ -956,5 +956,6 @@ window.addEventListener('load', function() {
         updateDailyIncomeDisplay();
     }
 });
+
 
 
