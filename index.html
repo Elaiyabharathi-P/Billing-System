@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Billing System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ Hotel Billing System</h1>
+            <p class="subtitle">Order your favorite dishes</p>
+            <div class="daily-income-container">
+                <div class="daily-income">
+                    <span class="income-label">Today's Income:</span>
+                    <span class="income-amount" id="daily-income">₹0.00</span>
+                </div>
+                <button class="admin-toggle-btn" onclick="toggleAdminPanel()">⚙️ Manage Menu</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="menu-section">
+                <div class="menu-header">
+                    <h2>Menu</h2>
+                </div>
+                
+                <!-- Admin Panel -->
+                <div id="admin-panel" class="admin-panel" style="display: none;">
+                    <h3>Add New Dish</h3>
+                    <div class="admin-form">
+                        <div class="form-group">
+                            <input type="text" id="new-dish-name" placeholder="Dish Name" class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" id="new-dish-price" placeholder="Price (₹)" class="admin-input" min="0">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="new-dish-description" placeholder="Description" class="admin-input">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" id="new-dish-image" placeholder="Image URL" class="admin-input">
+                        </div>
+                        <button class="add-dish-btn" onclick="addNewDish()">➕ Add Dish</button>
+                    </div>
+                </div>
+                
+                <div class="menu-grid" id="menu-grid">
+                    <!-- Menu items will be dynamically rendered here -->
+                </div>
+            </div>
+
+            <div class="cart-section">
+                <h2>Cart</h2>
+                <div class="cart-container">
+                    <div id="cart-items" class="cart-items">
+                        <p class="empty-cart-message">Your cart is empty</p>
+                    </div>
+                    <div class="cart-summary">
+                        <div class="summary-row total-row">
+                            <span>Total:</span>
+                            <span id="total">₹0</span>
+                        </div>
+                        <button class="checkout-btn" onclick="checkout()" id="checkout-btn" disabled>Checkout</button>
+                        <button class="clear-cart-btn" onclick="clearCart()" id="clear-cart-btn" style="display: none;">Clear Cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="checkout-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Bill Summary</h2>
+                <div id="bill-details"></div>
+                <div class="bill-total">
+                    <strong>Total Amount: <span id="bill-total"></span></strong>
+                </div>
+                <button class="pay-btn" onclick="showPaymentModal()">Proceed to Payment</button>
+                <button class="print-btn" onclick="printBill()">Print Bill</button>
+            </div>
+        </div>
+
+        <div id="payment-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closePaymentModal()">&times;</span>
+                <h2>Payment</h2>
+                <div class="payment-amount">
+                    <p>Amount to Pay: <strong id="payment-total">₹0</strong></p>
+                </div>
+                <div class="payment-methods">
+                    <h3>Select Payment Method</h3>
+                    <div class="payment-options">
+                        <button class="payment-method-btn" onclick="selectPaymentMethod('cash', this)">
+                            <span class="payment-icon">💵</span>
+                            <span>Cash</span>
+                        </button>
+                        <button class="payment-method-btn" onclick="selectPaymentMethod('card', this)">
+                            <span class="payment-icon">💳</span>
+                            <span>Card</span>
+                        </button>
+                        <button class="payment-method-btn" onclick="selectPaymentMethod('upi', this)">
+                            <span class="payment-icon">📱</span>
+                            <span>UPI / QR</span>
+                        </button>
+                        <button class="payment-method-btn" onclick="selectPaymentMethod('wallet', this)">
+                            <span class="payment-icon">👛</span>
+                            <span>Digital Wallet</span>
+                        </button>
+                    </div>
+                    <div id="payment-details" style="display: none; margin-top: 20px;">
+                        <div id="payment-form"></div>
+                        <button class="confirm-payment-btn" onclick="processPayment()">Confirm Payment</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel Modal for Removing Dishes -->
+        <div id="admin-remove-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAdminRemoveModal()">&times;</span>
+                <h2>Remove Dish</h2>
+                <p>Are you sure you want to remove <strong id="remove-dish-name"></strong> from the menu?</p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" onclick="closeAdminRemoveModal()">Cancel</button>
+                    <button class="confirm-remove-btn" onclick="confirmRemoveDish()">Remove</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Scanner Modal -->
+        <div id="qr-scanner-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeQRScanner()">&times;</span>
+                <h2>Scan QR Code</h2>
+                <div class="qr-scanner-container">
+                    <video id="qr-video" width="100%" autoplay playsinline></video>
+                    <canvas id="qr-canvas" style="display: none;"></canvas>
+                    <div id="qr-status" class="qr-status"></div>
+                </div>
+                <div class="qr-scanner-actions">
+                    <button class="qr-cancel-btn" onclick="closeQRScanner()">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
+
